@@ -35,9 +35,16 @@ const App = ({ anecdotes }) => {
     }
   }
 
+  console.log();
+
   return (
     <div>
       <p>{anecdotes[selected]}</p>
+      <p>
+        {numberOfVotes[anecdotes[selected]] !== undefined
+          ? `has ${numberOfVotes[anecdotes[selected]]} votes`
+          : `has 0 votes`}
+      </p>
       <button onClick={voteForAnecdote}>vote</button>
       <button onClick={nextAnecdote}>next anecdote</button>
       <p>{anecdote}</p>
