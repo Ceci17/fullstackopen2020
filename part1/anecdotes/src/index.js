@@ -35,8 +35,6 @@ const App = ({ anecdotes }) => {
     }
   }
 
-  console.log();
-
   return (
     <div>
       <p>{anecdotes[selected]}</p>
