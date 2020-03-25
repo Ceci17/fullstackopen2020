@@ -3,8 +3,7 @@ import ContactForm from "./ContactForm";
 import Filter from "./Filter";
 import Contacts from "./Contacts";
 import Heading from "./Heading";
-
-import axios from "axios";
+import contactServices from "./services/contacts";
 
 const App = () => {
   const [persons, setPersons] = useState([]);
@@ -12,9 +11,7 @@ const App = () => {
   const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
-    axios
-      .get("http://localhost:3001/persons")
-      .then(response => setPersons(response.data));
+    contactServices.getAll().then(response => setPersons(response.data));
   }, []);
 
   const handleChange = event => {
@@ -35,13 +32,39 @@ const App = () => {
       number: values.number
     };
 
-    if (persons?.filter(person => person.name === values.name).length !== 0) {
-      alert(`${values.name} is already added to phonebook`);
+    const found = persons?.find(person => person.name === newPerson.name);
+
+    if (found) {
+      if (
+        window.confirm(
+          `${values.name} is already added to phonebook, replace the old number with the new one?`
+        )
+      ) {
+        const changedContact = { ...found, number: newPerson.number };
+        contactServices
+          .update(found.id, changedContact)
+          .then(response =>
+            setPersons(
+              persons.map(person =>
+                person.id === found.id ? response.data : person
+              )
+            )
+          );
+        setValues({ name: "", number: "" });
+      }
       return;
     }
 
-    setPersons([...persons, newPerson]);
+    contactServices
+      .create(newPerson)
+      .then(response => setPersons([...persons, response.data]));
+
     setValues({ name: "", number: "" });
+  };
+
+  const handleRemove = id => {
+    contactServices.remove(id).then(response => response.data);
+    setPersons(persons.filter(person => person.id !== id));
   };
 
   const showContacts = persons?.filter(person =>
@@ -58,7 +81,7 @@ const App = () => {
         handleChange={handleChange}
       />
       <Heading title="Numbers" />
-      <Contacts contacts={showContacts} />
+      <Contacts contacts={showContacts} handleRemove={handleRemove} />
     </div>
   );
 };
